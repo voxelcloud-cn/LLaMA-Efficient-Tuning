@@ -1,0 +1,27 @@
+CUDA_VISIBLE_DEVICES=4 python ../src/train_bash.py \
+    --stage rm \
+    --model_name_or_path /mnt/eye_team/jyhu/LLaMA-Efficient-Tuning/models/chatglm2-6b \
+    --do_train \
+    --do_eval \
+    --dataset rm_all \
+    --dataset_dir ../data/medicalgpt \
+    --template chatglm2 \
+    --finetuning_type lora \
+    --lora_target query_key_value \
+    --resume_lora_training False \
+    --checkpoint_dir ../outputs/output-sft-chatglm2/checkpoint-12000 \
+    --output_dir ../outputs/output-rm-chatglm2 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 4 \
+    --lr_scheduler_type cosine \
+    --logging_steps 10 \
+    --save_steps 500 \
+    --eval_steps 10 \
+    --learning_rate 1e-5 \
+    --num_train_epochs 3 \
+    --fp16 \
+    --plot_loss \
+    --evaluation_strategy steps \
+    --load_best_model_at_end \
+    --val_size 0.1
+    
