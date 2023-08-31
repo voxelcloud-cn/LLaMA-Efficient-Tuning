@@ -3,10 +3,10 @@ MASTER_PORT=$(shuf -n 1 -i 10000-65535)
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 deepspeed --num_gpus=8 --master_port $MASTER_PORT ../src/train_bash.py \
     --deepspeed deepspeed_zero3.json \
     --stage pt \
-    --model_name_or_path /mnt/eye_team/jyhu/LLaMA-Efficient-Tuning/models/Llama-2-70b-chat-hf \
+    --model_name_or_path /mnt/eye_team/jyhu/LLM_assets/models/Llama-2-70b-chat-hf \
     --do_train \
     --dataset Ihin_pretrain \
-    --dataset_dir ../data/medicalgpt \
+    --dataset_dir /mnt/eye_team/jyhu/Ihin_assets \
     --template llama2 \
     --finetuning_type lora \
     --lora_target q_proj,v_proj \

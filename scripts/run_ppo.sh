@@ -6,7 +6,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 deepspeed --num_gpus=4 --master_port $MASTER_PORT s
     --model_name_or_path /mnt/eye_team/jyhu/LLaMA-Efficient-Tuning/models/chatglm2-6b \
     --do_train \
     --dataset self_cognition,Ihin_sft,ihin_qa_adn \
-    --dataset_dir ../data/medicalgpt \
+    --dataset_dir /mnt/eye_team/jyhu/Ihin_assets \
     --template chatglm2 \
     --finetuning_type lora \
     --lora_target query_key_value \

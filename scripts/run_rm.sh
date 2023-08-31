@@ -1,10 +1,10 @@
 CUDA_VISIBLE_DEVICES=4 python ../src/train_bash.py \
     --stage rm \
-    --model_name_or_path /mnt/eye_team/jyhu/LLaMA-Efficient-Tuning/models/chatglm2-6b \
+    --model_name_or_path /mnt/eye_team/jyhu/LLM_assets/models/chatglm2-6b \
     --do_train \
     --do_eval \
     --dataset rm_all \
-    --dataset_dir ../data/medicalgpt \
+    --dataset_dir /mnt/eye_team/jyhu/Ihin_assets \
     --template chatglm2 \
     --finetuning_type lora \
     --lora_target query_key_value \

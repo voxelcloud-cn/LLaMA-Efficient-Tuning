@@ -1,8 +1,14 @@
 # Ihin数据
 处理得到的Ihin文本数据以及相应的问答数据见
 ```
-/mnt/eye_team/jyhu/VoxelCloud-LLaMA-Efficient-Tuning/data/medicalgpt
+/mnt/eye_team/jyhu/Ihin_assets
 ```
+
+# 相关大语言模型地址
+```
+/mnt/eye_team/jyhu/LLM_assets/models
+```
+
 # training
 ## run continual pretraining for chatglm2-6b with deepspeed zero2
 ```bash 
