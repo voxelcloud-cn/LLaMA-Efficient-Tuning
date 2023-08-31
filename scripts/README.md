@@ -1,9 +1,15 @@
-# run continual pretraining for chatglm2-6b with deepspeed zero2
+# Ihin数据
+处理得到的Ihin文本数据以及相应的问答数据见
+```
+/mnt/eye_team/jyhu/VoxelCloud-LLaMA-Efficient-Tuning/data/medicalgpt
+```
+# training
+## run continual pretraining for chatglm2-6b with deepspeed zero2
 ```bash 
 cd scripts
 bash run_Ihin_pt.sh
 ```
-# run supervised finetuning for chatglm2-6b with deepspeed zero2
+## run supervised finetuning for chatglm2-6b with deepspeed zero2
 ```bash 
 cd scripts
 bash run_Ihin_sft.sh
@@ -14,13 +20,13 @@ cd scripts
 bash run_rm.sh
 ```
 
-# run proximal policy optimization for chatglm2-6b with deepspeed zero2
+## run proximal policy optimization for chatglm2-6b with deepspeed zero2
 ```bash 
 cd scripts
 bash run_ppo.sh
 ```
 
-# run continual pretraining for llama2-70b with deepspeed zero3
+## run continual pretraining for llama2-70b with deepspeed zero3
 ```bash 
 cd scripts
 bash run_llama2-70b_pt.sh
