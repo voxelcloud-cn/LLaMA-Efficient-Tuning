@@ -3,7 +3,7 @@ from transformers.trainer_utils import SchedulerType
 
 import gradio as gr
 
-from llmtuner.extras.constants import STAGES
+from llmtuner.extras.constants import TRAINING_STAGES
 from llmtuner.webui.common import list_checkpoint, list_dataset, DEFAULT_DATA_DIR
 from llmtuner.webui.components.data import create_preview_box
 from llmtuner.webui.utils import can_preview, get_preview, gen_plot
@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 
 def create_train_tab(top_elems: Dict[str, "Component"], runner: "Runner") -> Dict[str, "Component"]:
     with gr.Row():
-        training_stage = gr.Dropdown(choices=STAGES, value=STAGES[0], scale=2)
+        training_stage = gr.Dropdown(
+            choices=list(TRAINING_STAGES.keys()), value=list(TRAINING_STAGES.keys())[0], scale=2
+        )
         dataset_dir = gr.Textbox(value=DEFAULT_DATA_DIR, scale=2)
         dataset = gr.Dropdown(multiselect=True, scale=4)
         data_preview_btn = gr.Button(interactive=False, scale=1)
@@ -54,7 +56,6 @@ def create_train_tab(top_elems: Dict[str, "Component"], runner: "Runner") -> Dic
             save_steps = gr.Slider(value=100, minimum=10, maximum=5000, step=10)
             warmup_steps = gr.Slider(value=0, minimum=0, maximum=5000, step=1)
             compute_type = gr.Radio(choices=["fp16", "bf16"], value="fp16")
-            padding_side = gr.Radio(choices=["left", "right"], value="left")
 
     with gr.Accordion(label="LoRA config", open=False) as lora_tab:
         with gr.Row():
@@ -120,7 +121,6 @@ def create_train_tab(top_elems: Dict[str, "Component"], runner: "Runner") -> Dic
         save_steps,
         warmup_steps,
         compute_type,
-        padding_side,
         lora_rank,
         lora_dropout,
         lora_target,
@@ -166,7 +166,6 @@ def create_train_tab(top_elems: Dict[str, "Component"], runner: "Runner") -> Dic
         save_steps=save_steps,
         warmup_steps=warmup_steps,
         compute_type=compute_type,
-        padding_side=padding_side,
         lora_tab=lora_tab,
         lora_rank=lora_rank,
         lora_dropout=lora_dropout,

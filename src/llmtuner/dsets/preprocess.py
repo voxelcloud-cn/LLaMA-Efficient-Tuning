@@ -31,11 +31,15 @@ def preprocess_dataset(
             yield query, response, history, system
 
     def preprocess_pretrain_dataset(examples: Dict[str, List[Any]]) -> Dict[str, Any]:
-        # build grouped texts with format `X1 X2 X3 ...` (without <eos>)
-        if isinstance(getattr(tokenizer, "tokenizer", None), tiktoken.Encoding): # for tiktoken tokenizer (Qwen)
-            kwargs = dict(allowed_special="all")
+        # build grouped texts with format `X1 X2 X3 ...`
+        if isinstance(getattr(tokenizer, "tokenizer", None), tiktoken.Encoding):
+            kwargs = dict(allowed_special="all") # for tiktoken tokenizer (Qwen)
         else:
-            kwargs = dict(add_special_tokens=False)
+            kwargs = dict(add_special_tokens=True)
+
+        if hasattr(tokenizer, "add_bos_token") and hasattr(tokenizer, "add_eos_token"):
+            setattr(tokenizer, "add_bos_token", True) # for LLaMA tokenizer
+            setattr(tokenizer, "add_eos_token", True)
 
         tokenized_examples = tokenizer(examples["prompt"], **kwargs)
         concatenated_examples = {k: list(chain(*tokenized_examples[k])) for k in tokenized_examples.keys()}
@@ -59,7 +63,9 @@ def preprocess_dataset(
         for query, response, history, system in construct_example(examples):
             input_ids, labels = [], []
 
-            for source_ids, target_ids in template.encode_multiturn(tokenizer, query, response, history, system):
+            for turn_idx, (source_ids, target_ids) in enumerate(template.encode_multiturn(
+                tokenizer, query, response, history, system
+            )):
                 if len(source_ids) > data_args.max_source_length:
                     source_ids = source_ids[:data_args.max_source_length]
                 if len(target_ids) > data_args.max_target_length:
@@ -68,8 +74,17 @@ def preprocess_dataset(
                 if len(input_ids) + len(source_ids) + len(target_ids) > max_length:
                     break
 
+                if turn_idx != 0 and template.efficient_eos:
+                    source_mask = [tokenizer.eos_token_id] + [IGNORE_INDEX] * (len(source_ids) - 1)
+                else:
+                    source_mask = [IGNORE_INDEX] * len(source_ids)
+
                 input_ids += source_ids + target_ids
-                labels += [IGNORE_INDEX] * len(source_ids) + target_ids
+                labels += source_mask + target_ids
+
+            if template.efficient_eos:
+                input_ids += [tokenizer.eos_token_id]
+                labels += [tokenizer.eos_token_id]
 
             model_inputs["input_ids"].append(input_ids)
             model_inputs["attention_mask"].append([1] * len(input_ids))
@@ -88,6 +103,9 @@ def preprocess_dataset(
                 source_ids = source_ids[:data_args.max_source_length]
             if len(target_ids) > data_args.max_target_length:
                 target_ids = target_ids[:data_args.max_target_length]
+
+            if template.efficient_eos:
+                target_ids += [tokenizer.eos_token_id]
 
             model_inputs["input_ids"].append(source_ids)
             model_inputs["attention_mask"].append([1] * len(source_ids))
@@ -108,6 +126,10 @@ def preprocess_dataset(
                 chosen_ids = chosen_ids[:data_args.max_target_length]
             if len(rejected_ids) > data_args.max_target_length:
                 rejected_ids = rejected_ids[:data_args.max_target_length]
+
+            if template.efficient_eos:
+                chosen_ids += [tokenizer.eos_token_id]
+                rejected_ids += [tokenizer.eos_token_id]
 
             model_inputs["prompt_ids"].append(prompt_ids)
             model_inputs["chosen_ids"].append(chosen_ids)

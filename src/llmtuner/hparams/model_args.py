@@ -16,7 +16,7 @@ class ModelArguments:
         metadata={"help": "Where to store the pretrained models downloaded from huggingface.co."}
     )
     use_fast_tokenizer: Optional[bool] = field(
-        default=False,
+        default=True,
         metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."}
     )
     use_auth_token: Optional[bool] = field(
@@ -26,10 +26,6 @@ class ModelArguments:
     model_revision: Optional[str] = field(
         default="main",
         metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."}
-    )
-    padding_side: Optional[Literal["left", "right"]] = field(
-        default="left",
-        metadata={"help": "The side on which the model should have padding applied."}
     )
     quantization_bit: Optional[int] = field(
         default=None,
@@ -46,6 +42,10 @@ class ModelArguments:
     rope_scaling: Optional[Literal["linear", "dynamic"]] = field(
         default=None,
         metadata={"help": "Adopt scaled rotary positional embeddings."}
+    )
+    flash_attn: Optional[bool] = field(
+        default=False,
+        metadata={"help": "Enable flash attention for faster training."}
     )
     checkpoint_dir: Optional[str] = field(
         default=None,

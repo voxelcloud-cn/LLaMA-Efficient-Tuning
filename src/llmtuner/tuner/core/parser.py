@@ -5,6 +5,7 @@ import datasets
 import transformers
 from typing import Any, Dict, Optional, Tuple
 from transformers import HfArgumentParser, Seq2SeqTrainingArguments
+from transformers.utils.versions import require_version
 from transformers.trainer_utils import get_last_checkpoint
 
 from llmtuner.extras.logging import get_logger
@@ -95,6 +96,9 @@ def get_train_args(
     # Check arguments (do not check finetuning_args since it may be loaded from checkpoints)
     data_args.init_for_training()
 
+    if general_args.stage != "pt" and data_args.template is None:
+        raise ValueError("Please specify which `template` to use.")
+
     if general_args.stage != "sft" and training_args.predict_with_generate:
         raise ValueError("`predict_with_generate` cannot be set as True except SFT.")
 
@@ -110,8 +114,16 @@ def get_train_args(
     if general_args.stage in ["ppo", "dpo"] and not training_args.do_train:
         raise ValueError("PPO and DPO stages can only be performed at training.")
 
+    if general_args.stage in ["rm", "dpo"]:
+        for dataset_attr in data_args.dataset_list:
+            if not dataset_attr.ranking:
+                raise ValueError("Please use ranked datasets for reward modeling or DPO training.")
+
     if general_args.stage == "ppo" and model_args.reward_model is None:
         raise ValueError("Reward model is necessary for PPO training.")
+
+    if general_args.stage == "ppo" and training_args.deepspeed is not None:
+        raise ValueError("PPO training is incompatible with DeepSpeed, use Accelerate instead.")
 
     if general_args.stage == "ppo" and data_args.streaming:
         raise ValueError("Streaming mode does not suppport PPO training currently.")
@@ -166,6 +178,7 @@ def get_train_args(
         and os.path.isdir(training_args.output_dir)
         and not training_args.overwrite_output_dir
     ):
+        require_version("transformers>=4.31.0", "Resuming training requires transformers>=4.31.0.")
         last_checkpoint = get_last_checkpoint(training_args.output_dir)
         if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
             raise ValueError("Output directory already exists and is not empty. Use `overwrite_output_dir`.")
@@ -185,18 +198,6 @@ def get_train_args(
         model_args.compute_dtype = torch.bfloat16
     else:
         model_args.compute_dtype = torch.float16
-
-    # transfer training stage to dataset stage
-    dataset_stage = general_args.stage
-    if general_args.stage == "ppo":
-        dataset_stage = "sft"
-    elif general_args.stage == "dpo":
-        dataset_stage = "rm"
-
-    for dataset_attr in data_args.dataset_list:
-        if dataset_attr.stage and dataset_attr.stage != dataset_stage:
-            raise ValueError("Dataset {} is not supported for the stage {}"
-                             .format(dataset_attr.dataset_name, general_args.stage))
 
     model_args.model_max_length = data_args.max_source_length + data_args.max_target_length
 
@@ -222,6 +223,9 @@ def get_infer_args(
     GeneratingArguments
 ]:
     model_args, data_args, finetuning_args, generating_args = parse_infer_args(args)
+
+    if data_args.template is None:
+        raise ValueError("Please specify which `template` to use.")
 
     if model_args.quantization_bit is not None and finetuning_args.finetuning_type != "lora":
         raise ValueError("Quantization is only compatible with the LoRA method.")
