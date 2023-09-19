@@ -1,3 +1,9 @@
+*.json
+data/ihin.txt
+.vscode
+temp
+output
+recycle
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
